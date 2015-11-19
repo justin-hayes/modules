@@ -108,6 +108,13 @@
                             </div>
 
                             <div class="form-group">
+                                <label class="col-md-3 control-label" for="terminalCallStatuses{{$index}}">Terminal call statuses</label>
+                                <div class="col-md-8" data-toggle="tooltip" data-placement="top" data-trigger="hover" bs-popover="{{msg('ivr.web.settings.ignoredStatusFields.tooltip')}}">
+                                    <input class="form-control small-mono" id="terminalCallStatuses{{$index}}" type="text" ng-model="conf.terminalCallStatuses" ng-list=",">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
                                 <label class="col-md-3 control-label" for="callStatusMapping{{$index}}">{{msg('ivr.web.settings.callStatusMapping')}}</label>
                                 <div class="col-md-8" data-toggle="tooltip" data-placement="top" data-trigger="hover" bs-popover="{{msg('ivr.web.settings.callStatusMapping.tooltip')}}">
                                     <input class="form-control small-mono" id="callStatusMapping{{$index}}" type="text" ng-pattern="/^(\s*\w*\s*:[a-zA-Z0-9 ()]+)?(,\s*\w*\s*:([a-zA-Z0-9 ()])+)*$/" ng-model="conf.callStatusMappingString">
@@ -136,6 +143,24 @@
                                 <label class="col-md-3 control-label" for="jsonExtraParamsList{{$index}}">{{msg('ivr.web.settings.jsonExtraParamsList')}}</label>
                                 <div class="col-md-8" data-toggle="tooltip" data-placement="top" data-trigger="hover" bs-popover="{{msg('ivr.web.settings.jsonExtraParamsList.tooltip')}}">
                                     <input class="form-control small-mono" id="jsonExtraParamsList{{$index}}" type="text" ng-model="conf.jsonExtraParamsList" ng-list=",">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-md-3 control-label" for="healthChecked{{$index}}">Health checked?</label>
+                                <div class="col-md-1" data-toggle="tooltip" data-placement="top" data-trigger="hover" bs-popover="{{msg('ivr.web.settings.jsonResponse.tooltip')}}">
+                                    <div class="checkbox">
+                                        <label>
+                                            <input id="healthChecked{{$index}}" type="checkbox" ng-model="conf.healthChecked"/>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group" ng-show="conf.healthChecked">
+                                <label class="col-md-3 control-label" for="healthCheckUri{{$index}}">IVR Service Health URI</label>
+                                <div class="col-md-8" data-toggle="tooltip" data-placement="top" data-trigger="hover" bs-popover="{{msg('ivr.web.settings.jsonExtraParamsList.tooltip')}}">
+                                    <input class="form-control small-mono" id="healthCheckUri{{$index}}" type="text" ng-model="conf.healthCheckUri">
                                 </div>
                             </div>
 

@@ -10,6 +10,7 @@ import org.motechproject.ivr.event.EventSubjects;
 import org.motechproject.ivr.exception.ConfigNotFoundException;
 import org.motechproject.ivr.exception.IvrTemplateException;
 import org.motechproject.ivr.exception.TemplateNotFoundException;
+import org.motechproject.ivr.metric.service.IvrMetricsService;
 import org.motechproject.ivr.repository.CallDetailRecordDataService;
 import org.motechproject.ivr.service.ConfigService;
 import org.motechproject.ivr.service.TemplateService;
@@ -64,6 +65,7 @@ public class TemplateController {
     private StatusMessageService statusMessageService;
     private EventRelay eventRelay;
     private MDSLookupService mdsLookupService;
+    private IvrMetricsService ivrMetricsService;
     private BundleContext bundleContext;
 
     @PostConstruct
@@ -95,7 +97,7 @@ public class TemplateController {
                 configName, templateName, params, headers));
 
         sendAndLogEvent(EventSubjects.TEMPLATE_REQUEST, configService, callDetailRecordDataService,
-                statusMessageService, eventRelay, configName, templateName, params);
+                statusMessageService, ivrMetricsService, eventRelay, configName, templateName, params);
 
         Template template = templateService.getTemplate(templateName);
 
@@ -221,8 +223,9 @@ public class TemplateController {
     }
 
     @Autowired
-    public void setCallDetailRecordDataService(CallDetailRecordDataService callDetailRecordDataService) {
+    public void setCallDetailRecordDataService(CallDetailRecordDataService callDetailRecordDataService, IvrMetricsService ivrMetricsService) {
         this.callDetailRecordDataService = callDetailRecordDataService;
+        this.ivrMetricsService = ivrMetricsService;
     }
 
     @Autowired

@@ -69,7 +69,7 @@ public class StatusControllerBundleIT extends BasePaxIT {
     public void shouldNotLogWhenPassedInvalidConfig() throws Exception {
 
         //Create a config
-        configService.updateConfigs(Arrays.asList(new Config("foo", false, null, null, null, null, null, null, null, false, null, false, null)));
+        configService.updateConfigs(Arrays.asList(new Config("foo", false, null, null, null, null, null, null, null, null, false, null, false, null, false, null)));
 
         //Create & send a CDR status callback
         URIBuilder builder = new URIBuilder();
@@ -93,7 +93,7 @@ public class StatusControllerBundleIT extends BasePaxIT {
 
         //Create a config
         List<String> ignoredStatusFields = Arrays.asList("ignoreme", "ignoreme2");
-        configService.updateConfigs(Arrays.asList(new Config("foo", false, null, null, ignoredStatusFields, "FROM:from", null, "ANSWERED: NEW STATUS", null, false, null, false, null)));
+        configService.updateConfigs(Arrays.asList(new Config("foo", false, null, null, ignoredStatusFields, null, "FROM:from", null, "ANSWERED: NEW STATUS", null, false, null, false, null, false, null)));
 
         //Create & send a CDR status callback
         String motechCallId = UUID.randomUUID().toString();

@@ -3,6 +3,7 @@ package org.motechproject.ivr.web;
 import org.motechproject.admin.service.StatusMessageService;
 import org.motechproject.event.listener.EventRelay;
 import org.motechproject.ivr.event.EventSubjects;
+import org.motechproject.ivr.metric.service.IvrMetricsService;
 import org.motechproject.ivr.repository.CallDetailRecordDataService;
 import org.motechproject.ivr.service.ConfigService;
 import org.slf4j.Logger;
@@ -35,16 +36,19 @@ public class StatusController {
     private CallDetailRecordDataService callDetailRecordDataService;
     private ConfigService configService;
     private StatusMessageService statusMessageService;
+    private IvrMetricsService ivrMetricsService;
     private EventRelay eventRelay;
 
     @Autowired
     public StatusController(CallDetailRecordDataService callDetailRecordDataService, EventRelay eventRelay,
                             @Qualifier("configService") ConfigService configService,
-                            StatusMessageService statusMessageService) {
+                            StatusMessageService statusMessageService,
+                            IvrMetricsService ivrMetricsService) {
         this.callDetailRecordDataService = callDetailRecordDataService;
         this.eventRelay = eventRelay;
         this.configService = configService;
         this.statusMessageService = statusMessageService;
+        this.ivrMetricsService = ivrMetricsService;
     }
 
     /**
@@ -65,7 +69,7 @@ public class StatusController {
                 headers));
 
         sendAndLogEvent(EventSubjects.CALL_STATUS, configService, callDetailRecordDataService, statusMessageService,
-                eventRelay, configName, null, params);
+                ivrMetricsService, eventRelay, configName, null, params);
 
         return XML_OK_RESPONSE;
     }

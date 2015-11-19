@@ -373,6 +373,17 @@ public class CallDetailRecord {
         }
     }
 
+    public void setFieldsFromParamsAndConfig(Map<String, String> params, Config config) {
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            if (config.shouldIgnoreField(entry.getKey())) {
+                LOGGER.debug("Ignoring provider field '{}' with value '{}'", entry.getKey(), entry.getValue());
+            } else {
+                //Default status like CALL_INITIATED will be overwritten by value provided in params
+                setField(config.mapStatusField(entry.getKey()), entry.getValue(), config.getCallStatusMapping());
+            }
+        }
+    }
+
     @Override //NO CHECKSTYLE CyclomaticComplexity
     public boolean equals(Object o) {
         if (this == o) {

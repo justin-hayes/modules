@@ -7,6 +7,7 @@ import org.motechproject.ivr.domain.CallDetailRecord;
 import org.motechproject.ivr.domain.Config;
 import org.motechproject.ivr.event.EventParams;
 import org.motechproject.ivr.exception.ConfigNotFoundException;
+import org.motechproject.ivr.metric.service.IvrMetricsService;
 import org.motechproject.ivr.repository.CallDetailRecordDataService;
 import org.motechproject.ivr.service.ConfigService;
 import org.slf4j.Logger;
@@ -37,8 +38,8 @@ public final class LogAndEventHelper {
      */
     public static void sendAndLogEvent(String eventSubject, ConfigService configService, //NO CHECKSTYLE ArgumentCount
                                        CallDetailRecordDataService cdrService, StatusMessageService messageService,
-                                       EventRelay eventRelay, String configName, String templateName,
-                                       Map<String, String> params) {
+                                       IvrMetricsService ivrMetricsService, EventRelay eventRelay, String configName,
+                                       String templateName, Map<String, String> params) {
         if (!configService.hasConfig(configName)) {
             String msg = String.format("Invalid config: '%s'", configName);
             messageService.warn(msg, MODULE_NAME);
@@ -56,14 +57,9 @@ public final class LogAndEventHelper {
         //todo: some providers send session information (including caller id) through the headers, so we should add
         //todo: a config setting that scans the headers for CDR info in addition to the query parameters
 
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            if (config.shouldIgnoreField(entry.getKey())) {
-                LOGGER.debug("Ignoring provider field '{}' with value '{}'", entry.getKey(), entry.getValue());
-            } else {
-                //Default status like CALL_INITIATED will be overwritten by value provided in params
-                callDetailRecord.setField(config.mapStatusField(entry.getKey()), entry.getValue(), config.getCallStatusMapping());
-            }
-        }
+        callDetailRecord.setFieldsFromParamsAndConfig(params, config);
+
+        ivrMetricsService.countCallStatus(callDetailRecord.getCallStatus(), config.getTerminalCallStatuses());
 
         // Generate a MOTECH event
         Map<String, Object> eventParams = EventParams.eventParamsFromCallDetailRecord(callDetailRecord);
@@ -74,6 +70,5 @@ public final class LogAndEventHelper {
         // Save the CDR
         LOGGER.debug("Saving CallDetailRecord {}", callDetailRecord);
         cdrService.create(callDetailRecord);
-
     }
 }

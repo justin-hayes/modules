@@ -33,6 +33,11 @@
         </dependency>
         <dependency>
             <groupId>${motech.groupId}</groupId>
+            <artifactId>motech-metrics</artifactId>
+            <version>${motech.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${motech.groupId}</groupId>
             <artifactId>motech-scheduler</artifactId>
             <version>${motech.version}</version>
         </dependency>

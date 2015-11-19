@@ -34,6 +34,7 @@ import org.motechproject.ivr.domain.Config;
 import org.motechproject.ivr.domain.HttpMethod;
 import org.motechproject.ivr.event.EventParams;
 import org.motechproject.ivr.event.EventSubjects;
+import org.motechproject.ivr.metric.service.IvrMetricsService;
 import org.motechproject.ivr.repository.CallDetailRecordDataService;
 import org.motechproject.ivr.service.CallInitiationException;
 import org.motechproject.ivr.service.ConfigService;
@@ -77,6 +78,7 @@ public class OutboundCallServiceImpl implements OutboundCallService {
     private StatusMessageService statusMessageService;
     private static final String FILE_PROTOCOL = "file";
     private static final String HTTP_PROTOCOL = "http";
+    private IvrMetricsService ivrMetricsService;
     private static final String MODULE_NAME = "ivr";
     public static final List<Integer> ACCEPTABLE_IVR_RESPONSE_STATUSES = Arrays.asList(HttpStatus.SC_OK,
             HttpStatus.SC_ACCEPTED, HttpStatus.SC_CREATED);
@@ -84,11 +86,14 @@ public class OutboundCallServiceImpl implements OutboundCallService {
     @Autowired
     public OutboundCallServiceImpl(@Qualifier("configService") ConfigService configService,
                                    StatusMessageService statusMessageService,
-                                   CallDetailRecordDataService callDetailRecordDataService, EventRelay eventRelay) {
+                                   CallDetailRecordDataService callDetailRecordDataService,
+                                   EventRelay eventRelay,
+                                   IvrMetricsService ivrMetricsService) {
         this.configService = configService;
         this.statusMessageService = statusMessageService;
         this.callDetailRecordDataService = callDetailRecordDataService;
         this.eventRelay = eventRelay;
+        this.ivrMetricsService = ivrMetricsService;
     }
 
     private void addCallDetailRecord(String callStatus, Config config, Map<String, String> params,
@@ -99,14 +104,9 @@ public class OutboundCallServiceImpl implements OutboundCallService {
         CallDetailRecord callDetailRecord = new CallDetailRecord(config.getName(), null, null, null, CallDirection.OUTBOUND,
                 callStatus, null, motechCallId, null, null, null, null);
 
-        for (Map.Entry<String, String> entry : params.entrySet()) {
-            if (config.shouldIgnoreField(entry.getKey())) {
-                LOGGER.debug("Ignoring provider field '{}' with value '{}'", entry.getKey(), entry.getValue());
-            } else {
-                //Default status like CALL_INITIATED will be overwritten by value provided in params
-                callDetailRecord.setField(config.mapStatusField(entry.getKey()), entry.getValue(), config.getCallStatusMapping());
-            }
-        }
+        callDetailRecord.setFieldsFromParamsAndConfig(params, config);
+
+        ivrMetricsService.countCallStatus(callDetailRecord.getCallStatus(), config.getTerminalCallStatuses());
 
         callDetailRecordDataService.create(callDetailRecord);
     }
@@ -114,6 +114,8 @@ public class OutboundCallServiceImpl implements OutboundCallService {
     @Override
     public void initiateCall(String configName, Map<String, String> parameters) {
         LOGGER.debug("initiateCall(configName = {}, params = {})", configName, parameters);
+
+        ivrMetricsService.markInitiatedCallMeter();
 
         Map<String, String> params = new HashMap<>(parameters);
 

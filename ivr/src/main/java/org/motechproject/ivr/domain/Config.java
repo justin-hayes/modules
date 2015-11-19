@@ -39,6 +39,8 @@ public class Config {
      */
     private List<String> ignoredStatusFields;
 
+    private List<String> terminalCallStatuses;
+
     /**
      * Template string used to issue an HTTP call to the IVR provider in order to initiate an outgoing (MT) call.
      * [xxx] placeholders are replaced with the values provided in the initiateCall() method.
@@ -97,15 +99,20 @@ public class Config {
     @JsonIgnore
     private Map<String, String> callStatusMapping;
 
+    private boolean healthChecked;
+
+    private String healthCheckUri;
+
     public Config(String name, boolean authRequired, String username, String password, //NO CHECKSTYLE ArgumentCount
-                  List<String> ignoredStatusFields, String statusFieldMapString, String servicesMapString, String callStatusMappingString,
+                  List<String> ignoredStatusFields, List<String> terminalCallStatuses, String statusFieldMapString, String servicesMapString, String callStatusMappingString,
                   HttpMethod outgoingCallMethod, boolean jsonRequest, String outgoingCallUriTemplate, boolean jsonResponse,
-                  List<String> jsonExtraParamsList) {
+                  List<String> jsonExtraParamsList, boolean healthChecked, String healthCheckUri) {
         this.name = name;
         this.authRequired = authRequired;
         this.username = username;
         this.password = password;
         this.ignoredStatusFields = ignoredStatusFields;
+        this.terminalCallStatuses = terminalCallStatuses;
         this.outgoingCallUriTemplate = outgoingCallUriTemplate;
         this.outgoingCallMethod = outgoingCallMethod;
         this.jsonRequest = jsonRequest;
@@ -117,6 +124,8 @@ public class Config {
         this.jsonExtraParamsList = jsonExtraParamsList;
         this.callStatusMappingString = callStatusMappingString;
         this.callStatusMapping = parseStringToMap(callStatusMappingString);
+        this.healthChecked = healthChecked;
+        this.healthCheckUri = healthCheckUri;
     }
 
     private Map<String, String> parseStringToMap(String string) {
@@ -196,6 +205,14 @@ public class Config {
         this.ignoredStatusFields = ignoredStatusFields;
     }
 
+    public List<String> getTerminalCallStatuses() {
+        return terminalCallStatuses;
+    }
+
+    public void setTerminalCallStatuses(List<String> terminalCallStatuses) {
+        this.terminalCallStatuses = terminalCallStatuses;
+    }
+
     public String getOutgoingCallUriTemplate() {
         return outgoingCallUriTemplate;
     }
@@ -267,6 +284,22 @@ public class Config {
         return callStatusMapping;
     }
 
+    public boolean isHealthChecked() {
+        return healthChecked;
+    }
+
+    public void setHealthChecked(boolean isHealthchecked) {
+        this.healthChecked = isHealthchecked;
+    }
+
+    public String getHealthCheckUri() {
+        return healthCheckUri;
+    }
+
+    public void setHealthCheckUri(String healthCheckUri) {
+        this.healthCheckUri = healthCheckUri;
+    }
+
     /**
      * When pinging Motech back to provide call status, IVR providers sometimes send fields with different names than
      * those that are used by the system. For example the originating number is sometimes provided as 'callerid' whereas
@@ -298,6 +331,7 @@ public class Config {
 
         if (authRequired != config.authRequired) { return false; }
         if (jsonResponse != config.jsonResponse) { return false; }
+        if (healthChecked != config.healthChecked) { return false; }
         if (ignoredStatusFields != null ? !ignoredStatusFields.equals(config.ignoredStatusFields) : config.ignoredStatusFields != null)
             { return false; }
         if (jsonExtraParamsList != null ? !jsonExtraParamsList.equals(config.jsonExtraParamsList) : config.jsonExtraParamsList != null)
@@ -317,7 +351,8 @@ public class Config {
                 !StringUtils.equals(callStatusMappingString, config.callStatusMappingString) ||
                 !StringUtils.equals(statusFieldMapString, config.statusFieldMapString) ||
                 !StringUtils.equals(outgoingCallUriTemplate, config.outgoingCallUriTemplate) ||
-                !StringUtils.equals(servicesMapString, config.servicesMapString)) {
+                !StringUtils.equals(servicesMapString, config.servicesMapString) ||
+                !StringUtils.equals(healthCheckUri, config.healthCheckUri)) {
             return false;
         }
         return true;
@@ -334,6 +369,8 @@ public class Config {
         result = 31 * result + outgoingCallMethod.hashCode();
         result = 31 * result + (statusFieldMap != null ? statusFieldMap.hashCode() : 0);
         result = 31 * result + (jsonResponse ? 1 : 0);
+        result = 31 * result + (healthChecked ? 1 : 0);
+        result = 31 * result + (healthCheckUri != null ? healthCheckUri.hashCode() : 0);
         result = 31 * result + (jsonExtraParamsList != null ? jsonExtraParamsList.hashCode() : 0);
         result = 31 * result + (statusFieldMapString != null ? statusFieldMapString.hashCode() : 0);
         result = 31 * result + (servicesMap != null ? servicesMap.hashCode() : 0);
@@ -361,6 +398,8 @@ public class Config {
                 ", servicesMapString='" + servicesMapString + '\'' +
                 ", callStatusMapping='" + callStatusMapping + '\'' +
                 ", callStatusMappingString='" + callStatusMappingString + '\'' +
+                ", healthChecked='" + healthChecked + '\'' +
+                ", healthCheckUri='" + healthCheckUri + '\'' +
                 '}';
     }
 }

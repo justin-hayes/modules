@@ -10,7 +10,9 @@ import org.motechproject.event.MotechEvent;
 import org.motechproject.event.listener.annotations.MotechListener;
 import org.motechproject.ivr.domain.Config;
 import org.motechproject.ivr.exception.ConfigNotFoundException;
+import org.motechproject.ivr.metric.IvrHealthCheck;
 import org.motechproject.ivr.service.ConfigService;
+import org.motechproject.metrics.service.HealthCheckRegistryService;
 import org.motechproject.server.config.SettingsFacade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,8 +36,10 @@ import java.util.Map;
 public class ConfigServiceImpl implements ConfigService {
     private static final String CONFIG_FILE_NAME = "ivr-configs.json";
     private static final String CONFIG_FILE_PATH = "/org.motechproject.ivr/raw/" + CONFIG_FILE_NAME;
+    private static final String HEALTHCHECK_PREFIX = "motech.ivr.healthchecks.";
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigServiceImpl.class);
     private SettingsFacade settingsFacade;
+    private HealthCheckRegistryService healthCheckRegistryService;
     private Map<String, Config> configs = new HashMap<>();
 
     private synchronized void loadConfigs() {
@@ -52,15 +56,27 @@ public class ConfigServiceImpl implements ConfigService {
             throw new JsonIOException(message, e);
         }
 
+        // clear previous IVR healthchecks
+        for (String healthCheckName: healthCheckRegistryService.getNames()) {
+            if (healthCheckName.startsWith(HEALTHCHECK_PREFIX)) {
+                healthCheckRegistryService.unregister(healthCheckName);
+            }
+        }
+
         configs = new HashMap<>();
         for (Config config : configList) {
             configs.put(config.getName(), config);
+            if (config.isHealthChecked()) {
+                IvrHealthCheck healthCheck = new IvrHealthCheck(config.getHealthCheckUri(), config.isAuthRequired(), config.getUsername(), config.getPassword());
+                healthCheckRegistryService.register(HEALTHCHECK_PREFIX + config.getName(), healthCheck);
+            }
         }
     }
 
     @Autowired
-    public ConfigServiceImpl(@Qualifier("ivrSettings") SettingsFacade settingsFacade) {
+    public ConfigServiceImpl(@Qualifier("ivrSettings") SettingsFacade settingsFacade, HealthCheckRegistryService healthCheckRegistryService) {
         this.settingsFacade = settingsFacade;
+        this.healthCheckRegistryService = healthCheckRegistryService;
         loadConfigs();
     }
 

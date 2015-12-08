@@ -153,7 +153,7 @@ public class OutboundCallServiceBundleIT extends BasePaxIT {
 
         String uri = path.toUri().toString().replace(fileName, "[fileName]");
 
-        Config config = new Config("conf159", false, null, null, null, null, null, null, HttpMethod.GET, false, uri, false, null);
+        Config config = new Config("conf159", false, null, null, null, null, null, null, null, HttpMethod.GET, false, uri, false, null, false, null);
 
         configService.updateConfigs(Arrays.asList(config));
 

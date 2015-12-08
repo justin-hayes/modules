@@ -11,6 +11,7 @@ import org.motechproject.commcare.parser.CaseParser;
 import org.motechproject.commcare.service.CommcareConfigService;
 import org.motechproject.event.MotechEvent;
 import org.motechproject.event.listener.EventRelay;
+import org.motechproject.metrics.service.MetricRegistryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,8 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import static org.motechproject.commcare.events.constants.EventDataKeys.FIELD_VALUES;
 
@@ -33,17 +36,21 @@ import static org.motechproject.commcare.events.constants.EventDataKeys.FIELD_VA
 @RequestMapping("/cases")
 public class CasesController extends CommcareController {
     private static final Logger LOGGER = LoggerFactory.getLogger(CasesController.class);
+    private static final String CASE_PUSH_DELAY = "commcare.push.case.delay";
+    private static final String CASE_PUSH_METER = "commcare.push.case.meter";
 
     private static final String FULL_DATA_EVENT = "full";
     private static final String PARTIAL_DATA_EVENT = "partial";
 
     private EventRelay eventRelay;
     private CommcareConfigService configService;
+    private MetricRegistryService metricRegistryService;
 
     @Autowired
-    public CasesController(final EventRelay eventRelay, final CommcareConfigService configService) {
+    public CasesController(final EventRelay eventRelay, final CommcareConfigService configService, final MetricRegistryService metricRegistryService) {
         this.eventRelay = eventRelay;
         this.configService = configService;
+        this.metricRegistryService = metricRegistryService;
     }
 
     @RequestMapping
@@ -82,6 +89,7 @@ public class CasesController extends CommcareController {
             LOGGER.error(e1.getMessage(), e1);
         }
         LOGGER.trace("Received request for mapping /cases: {}", caseXml);
+        metricRegistryService.meter(CASE_PUSH_METER).mark();
 
         if (!config.isForwardCases()) {
             throw new EndpointNotSupported(String.format("Configuration \"%s\" doesn't support endpoint for cases!", config.getName()));
@@ -102,10 +110,12 @@ public class CasesController extends CommcareController {
 
         if (caseInstance != null) {
 
-            caseInstance.setServerModifiedOn(request.getHeader("server-modified-on"));
+            caseInstance.setServerModifiedOn(request.getHeader("Server-Modified-On"));
             CaseEvent caseEvent = new CaseEvent(caseInstance.getCaseId());
             caseEvent.setConfigName(config.getName());
             caseEvent.setCaseType(caseInstance.getCaseType());
+
+            updateCasePushDelay(caseInstance.getServerModifiedOn());
 
             MotechEvent motechCaseEvent;
             String caseEventStrategy = config.getEventStrategy();
@@ -124,5 +134,11 @@ public class CasesController extends CommcareController {
         }
 
         return null;
+    }
+
+    private void updateCasePushDelay(String commcareTimeStamp) {
+        Instant commcareReceivedOn = Instant.parse(commcareTimeStamp);
+        long delay = ChronoUnit.SECONDS.between(commcareReceivedOn, Instant.now());
+        metricRegistryService.histogram(CASE_PUSH_DELAY).update(delay);
     }
 }

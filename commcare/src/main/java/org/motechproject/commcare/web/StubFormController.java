@@ -12,6 +12,7 @@ import org.motechproject.commons.api.TasksEventParser;
 import org.motechproject.commons.api.json.MotechJsonReader;
 import org.motechproject.event.MotechEvent;
 import org.motechproject.event.listener.EventRelay;
+import org.motechproject.metrics.service.MetricRegistryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 /**
  * Controller that handles the incoming stub form feed from CommCareHQ. Maps to /commcare/stubforms. It is capable of
@@ -33,6 +36,8 @@ import javax.servlet.http.HttpServletRequest;
 public class StubFormController extends CommcareController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(StubFormController.class);
+    private static final String FORM_STUB_PUSH_DELAY = "commcare.push.formstub.delay";
+    private static final String FORM_STUB_PUSH_METER = "commcare.push.formstub.meter";
 
     private EventRelay eventRelay;
 
@@ -40,10 +45,13 @@ public class StubFormController extends CommcareController {
 
     private CommcareConfigService configService;
 
+    private final MetricRegistryService metricRegistryService;
+
     @Autowired
-    public StubFormController(EventRelay eventRelay, CommcareConfigService configService) {
+    public StubFormController(EventRelay eventRelay, CommcareConfigService configService, MetricRegistryService metricRegistryService) {
         this.eventRelay = eventRelay;
         this.configService = configService;
+        this.metricRegistryService = metricRegistryService;
         jsonReader = new MotechJsonReader();
     }
 
@@ -65,6 +73,8 @@ public class StubFormController extends CommcareController {
 
     private ModelAndView doReceiveFormEvent(String body, Config config) throws EndpointNotSupported {
 
+        metricRegistryService.meter(FORM_STUB_PUSH_METER).mark();
+
         if (!config.isForwardStubs()) {
             throw new EndpointNotSupported(String.format("Configuration \"%s\" doesn't support endpoint for stubs!", config.getName()));
         }
@@ -81,6 +91,8 @@ public class StubFormController extends CommcareController {
         }
 
         if (formStub != null) {
+            updateFormStubPushDelay(formStub.getReceivedOn());
+
             MotechEvent formEvent = new MotechEvent(EventSubjects.FORM_STUB_EVENT);
 
             formEvent.getParameters().put(TasksEventParser.CUSTOM_PARSER_EVENT_KEY, CommcareStubFormsEventParser.PARSER_NAME);
@@ -95,5 +107,11 @@ public class StubFormController extends CommcareController {
         }
 
         return null;
+    }
+
+    private void updateFormStubPushDelay(String commcareTimeStamp) {
+        Instant commcareReceivedOn = Instant.parse(commcareTimeStamp);
+        long delay = ChronoUnit.SECONDS.between(commcareReceivedOn, Instant.now());
+        metricRegistryService.histogram(FORM_STUB_PUSH_DELAY).update(delay);
     }
 }

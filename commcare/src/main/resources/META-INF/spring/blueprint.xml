@@ -82,5 +82,7 @@
 
     <osgi:reference id="transactionManager" interface="org.springframework.transaction.PlatformTransactionManager" context-class-loader="unmanaged"/>
 
+    <osgi:reference id="metricRegistryService" interface="org.motechproject.metrics.service.MetricRegistryService"/>
+
     <mvc:annotation-driven/>
 </beans>

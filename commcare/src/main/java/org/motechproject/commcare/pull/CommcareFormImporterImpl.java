@@ -12,6 +12,8 @@ import org.motechproject.commcare.request.FormListRequest;
 import org.motechproject.commcare.service.CommcareFormService;
 import org.motechproject.commons.api.Range;
 import org.motechproject.event.listener.EventRelay;
+import org.motechproject.metrics.api.Timer;
+import org.motechproject.metrics.service.MetricRegistryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,10 +25,13 @@ public class CommcareFormImporterImpl implements CommcareFormImporter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommcareFormImporterImpl.class);
 
+    private static final String FORM_IMPORT_TIMER = "commcare.import.form.timer";
+
     private static final int PAGE_SIZE_FOR_FETCH = 100;
 
     private CommcareFormService formService;
     private EventRelay eventRelay;
+    private MetricRegistryService metricRegistryService;
 
     private int fetchSize = PAGE_SIZE_FOR_FETCH;
 
@@ -41,9 +46,10 @@ public class CommcareFormImporterImpl implements CommcareFormImporter {
     private boolean inError;
     private String errorMessage;
 
-    public CommcareFormImporterImpl(EventRelay eventRelay, CommcareFormService formService) {
+    public CommcareFormImporterImpl(EventRelay eventRelay, CommcareFormService formService, MetricRegistryService metricRegistryService) {
         this.eventRelay = eventRelay;
         this.formService = formService;
+        this.metricRegistryService = metricRegistryService;
     }
 
     @Override
@@ -78,6 +84,8 @@ public class CommcareFormImporterImpl implements CommcareFormImporter {
                 boolean hasMore = false;
 
                 LOGGER.debug("Import thread started");
+
+                final Timer.Context timerContext = metricRegistryService.timer(FORM_IMPORT_TIMER).time();
 
                 // we start from the last page, since Commcare orders by received_on descending, we want ascending
                 // we reuse the builder
@@ -116,6 +124,7 @@ public class CommcareFormImporterImpl implements CommcareFormImporter {
                 } while (importInProgress && hasMore);
 
                 LOGGER.info("Form import finished");
+                timerContext.stop();
 
                 importInProgress = false;
             }

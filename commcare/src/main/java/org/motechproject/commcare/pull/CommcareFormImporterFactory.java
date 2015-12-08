@@ -3,6 +3,7 @@ package org.motechproject.commcare.pull;
 
 import org.motechproject.commcare.service.CommcareFormService;
 import org.motechproject.event.listener.EventRelay;
+import org.motechproject.metrics.service.MetricRegistryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,9 @@ public class CommcareFormImporterFactory implements HttpSessionListener {
     @Autowired
     private CommcareFormService formService;
 
+    @Autowired
+    private MetricRegistryService metricRegistryService;
+
     private final Map<String, CommcareFormImporter> importerMap = new HashMap<>();
 
     /**
@@ -50,7 +54,7 @@ public class CommcareFormImporterFactory implements HttpSessionListener {
 
         if (!importerMap.containsKey(sid)) {
             LOGGER.debug("No importer available for session with ID: {}. Creating a new one.", sid);
-            importerMap.put(sid, new CommcareFormImporterImpl(eventRelay, formService));
+            importerMap.put(sid, new CommcareFormImporterImpl(eventRelay, formService, metricRegistryService));
         }
 
         return importerMap.get(sid);

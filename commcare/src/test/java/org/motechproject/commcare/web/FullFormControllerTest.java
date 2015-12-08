@@ -15,6 +15,9 @@ import org.motechproject.commcare.util.ResponseXML;
 import org.motechproject.commons.api.TasksEventParser;
 import org.motechproject.event.MotechEvent;
 import org.motechproject.event.listener.EventRelay;
+import org.motechproject.metrics.api.Histogram;
+import org.motechproject.metrics.api.Meter;
+import org.motechproject.metrics.service.MetricRegistryService;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 import java.util.ArrayList;
@@ -23,6 +26,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -46,6 +50,15 @@ public class FullFormControllerTest {
     @Mock
     private CommcareConfigService configService;
 
+    @Mock
+    private MetricRegistryService metricRegistryService;
+
+    @Mock
+    private Meter meter;
+
+    @Mock
+    private Histogram histogram;
+
     private FullFormController controller;
     private MockHttpServletRequest request;
     private Config config;
@@ -54,10 +67,13 @@ public class FullFormControllerTest {
     public void setUp() throws Exception {
         initMocks(this);
 
-        controller = new FullFormController(eventRelay, configService);
+        controller = new FullFormController(eventRelay, configService, metricRegistryService);
 
         config = ConfigsUtils.prepareConfigOne();
         when(configService.getByName(config.getName())).thenReturn(config);
+
+        when(metricRegistryService.meter(anyString())).thenReturn(meter);
+        when(metricRegistryService.histogram(anyString())).thenReturn(histogram);
 
         request = new MockHttpServletRequest();
         request.addHeader("received-on", "2012-07-21T15:22:34.046462Z");

@@ -17,6 +17,9 @@ import org.motechproject.commcare.util.ConfigsUtils;
 import org.motechproject.commons.api.TasksEventParser;
 import org.motechproject.event.MotechEvent;
 import org.motechproject.event.listener.EventRelay;
+import org.motechproject.metrics.api.Histogram;
+import org.motechproject.metrics.api.Meter;
+import org.motechproject.metrics.service.MetricRegistryService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -25,6 +28,7 @@ import java.util.Map;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -39,14 +43,23 @@ public class StubFormControllerTest {
     private CommcareConfigService configService;
 
     @Mock
+    private MetricRegistryService metricRegistryService;
+
+    @Mock
+    private Meter meter;
+
+    @Mock
+    private Histogram histogram;
+
+    @Mock
     private HttpServletRequest request;
 
     @InjectMocks
-    private StubFormController stubController = new StubFormController(eventRelay, configService);
+    private StubFormController stubController = new StubFormController(eventRelay, configService, metricRegistryService);
 
     private Config config;
 
-    private String json = "{\"received_on\":\"1-1-2012\",\"form_id\":\"id123\",\"case_ids\":[\"123\",\"345\"]}";
+    private String json = "{\"received_on\":\"2015-04-17T20:14:34.046462Z\",\"form_id\":\"id123\",\"case_ids\":[\"123\",\"345\"]}";
 
     @Before
     public void initMocks() {
@@ -56,6 +69,9 @@ public class StubFormControllerTest {
 
         when(configService.getByName(config.getName())).thenReturn(config);
         when(request.getPathInfo()).thenReturn("/stub/" + config.getName());
+
+        when(metricRegistryService.meter(anyString())).thenReturn(meter);
+        when(metricRegistryService.histogram(anyString())).thenReturn(histogram);
     }
 
     @Test
@@ -89,6 +105,6 @@ public class StubFormControllerTest {
                 eventParameters.keySet());
         assertEquals(eventParameters.get(EventDataKeys.FORM_ID), "id123");
         assertEquals(asList("123", "345"), eventParameters.get(EventDataKeys.CASE_IDS));
-        assertEquals(eventParameters.get(EventDataKeys.RECEIVED_ON), "1-1-2012");
+        assertEquals(eventParameters.get(EventDataKeys.RECEIVED_ON), "2015-04-17T20:14:34.046462Z");
     }
 }

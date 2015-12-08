@@ -33,6 +33,11 @@
             <version>${motech.version}</version>
         </dependency>
         <dependency>
+            <groupId>${motech.groupId}</groupId>
+            <artifactId>motech-metrics</artifactId>
+            <version>${motech.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.thoughtworks.xstream</groupId>
             <artifactId>xstream</artifactId>
         </dependency>
@@ -215,6 +220,7 @@
                             org.aopalliance.aop,
                             org.motechproject.event.listener,
                             org.motechproject.event.listener.annotations,
+                            org.motechproject.metrics.service,
                             org.motechproject.server.config,
                             org.motechproject.server.config.service,
                             org.motechproject.config.service,

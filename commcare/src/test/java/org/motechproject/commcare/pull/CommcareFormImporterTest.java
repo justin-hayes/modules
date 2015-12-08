@@ -23,6 +23,8 @@ import org.motechproject.commons.api.Range;
 import org.motechproject.commons.api.TasksEventParser;
 import org.motechproject.event.MotechEvent;
 import org.motechproject.event.listener.EventRelay;
+import org.motechproject.metrics.api.Timer;
+import org.motechproject.metrics.service.MetricRegistryService;
 import org.motechproject.testing.osgi.wait.Wait;
 import org.motechproject.testing.osgi.wait.WaitCondition;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -37,6 +39,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
@@ -71,10 +74,23 @@ public class CommcareFormImporterTest {
     @Mock
     private CommcareFormService formService;
 
+    @Mock
+    private MetricRegistryService metricRegistryService;
+
+    @Mock
+    private Timer timer;
+
+    @Mock
+    private Timer.Context context;
+
     @Before
     public void setUp() {
         setUpSuccessfulImport();
-        importer = new CommcareFormImporterImpl(eventRelay, formService);
+        importer = new CommcareFormImporterImpl(eventRelay, formService, metricRegistryService);
+
+        when(metricRegistryService.timer(anyString())).thenReturn(timer);
+        when(timer.time()).thenReturn(context);
+
         importer.setFetchSize(2);
     }
 

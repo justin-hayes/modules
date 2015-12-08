@@ -10,11 +10,11 @@ import org.motechproject.ivr.event.EventSubjects;
 import org.motechproject.ivr.exception.ConfigNotFoundException;
 import org.motechproject.ivr.exception.IvrTemplateException;
 import org.motechproject.ivr.exception.TemplateNotFoundException;
-import org.motechproject.ivr.metric.service.IvrMetricsService;
 import org.motechproject.ivr.repository.CallDetailRecordDataService;
 import org.motechproject.ivr.service.ConfigService;
 import org.motechproject.ivr.service.TemplateService;
 import org.motechproject.mds.service.MDSLookupService;
+import org.motechproject.metrics.service.MetricRegistryService;
 import org.motechproject.osgi.web.util.OSGiServiceUtils;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
@@ -65,7 +65,7 @@ public class TemplateController {
     private StatusMessageService statusMessageService;
     private EventRelay eventRelay;
     private MDSLookupService mdsLookupService;
-    private IvrMetricsService ivrMetricsService;
+    private MetricRegistryService metricRegistryService;
     private BundleContext bundleContext;
 
     @PostConstruct
@@ -97,7 +97,7 @@ public class TemplateController {
                 configName, templateName, params, headers));
 
         sendAndLogEvent(EventSubjects.TEMPLATE_REQUEST, configService, callDetailRecordDataService,
-                statusMessageService, ivrMetricsService, eventRelay, configName, templateName, params);
+                statusMessageService, metricRegistryService, eventRelay, configName, templateName, params);
 
         Template template = templateService.getTemplate(templateName);
 
@@ -223,9 +223,9 @@ public class TemplateController {
     }
 
     @Autowired
-    public void setCallDetailRecordDataService(CallDetailRecordDataService callDetailRecordDataService, IvrMetricsService ivrMetricsService) {
+    public void setCallDetailRecordDataService(CallDetailRecordDataService callDetailRecordDataService, MetricRegistryService metricRegistryService) {
         this.callDetailRecordDataService = callDetailRecordDataService;
-        this.ivrMetricsService = ivrMetricsService;
+        this.metricRegistryService = metricRegistryService;
     }
 
     @Autowired

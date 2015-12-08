@@ -3,9 +3,9 @@ package org.motechproject.ivr.web;
 import org.motechproject.admin.service.StatusMessageService;
 import org.motechproject.event.listener.EventRelay;
 import org.motechproject.ivr.event.EventSubjects;
-import org.motechproject.ivr.metric.service.IvrMetricsService;
 import org.motechproject.ivr.repository.CallDetailRecordDataService;
 import org.motechproject.ivr.service.ConfigService;
+import org.motechproject.metrics.service.MetricRegistryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,19 +36,19 @@ public class StatusController {
     private CallDetailRecordDataService callDetailRecordDataService;
     private ConfigService configService;
     private StatusMessageService statusMessageService;
-    private IvrMetricsService ivrMetricsService;
+    private MetricRegistryService metricRegistryService;
     private EventRelay eventRelay;
 
     @Autowired
     public StatusController(CallDetailRecordDataService callDetailRecordDataService, EventRelay eventRelay,
                             @Qualifier("configService") ConfigService configService,
                             StatusMessageService statusMessageService,
-                            IvrMetricsService ivrMetricsService) {
+                            MetricRegistryService metricRegistryService) {
         this.callDetailRecordDataService = callDetailRecordDataService;
         this.eventRelay = eventRelay;
         this.configService = configService;
         this.statusMessageService = statusMessageService;
-        this.ivrMetricsService = ivrMetricsService;
+        this.metricRegistryService = metricRegistryService;
     }
 
     /**
@@ -69,7 +69,7 @@ public class StatusController {
                 headers));
 
         sendAndLogEvent(EventSubjects.CALL_STATUS, configService, callDetailRecordDataService, statusMessageService,
-                ivrMetricsService, eventRelay, configName, null, params);
+                metricRegistryService, eventRelay, configName, null, params);
 
         return XML_OK_RESPONSE;
     }

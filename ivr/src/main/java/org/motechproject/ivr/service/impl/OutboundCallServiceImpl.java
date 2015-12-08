@@ -34,11 +34,11 @@ import org.motechproject.ivr.domain.Config;
 import org.motechproject.ivr.domain.HttpMethod;
 import org.motechproject.ivr.event.EventParams;
 import org.motechproject.ivr.event.EventSubjects;
-import org.motechproject.ivr.metric.service.IvrMetricsService;
 import org.motechproject.ivr.repository.CallDetailRecordDataService;
 import org.motechproject.ivr.service.CallInitiationException;
 import org.motechproject.ivr.service.ConfigService;
 import org.motechproject.ivr.service.OutboundCallService;
+import org.motechproject.metrics.service.MetricRegistryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,6 +65,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.motechproject.ivr.metric.MetricHelper.countCallStatus;
+import static org.motechproject.ivr.metric.MetricNames.INITIATED_CALLS_METER;
+import static org.motechproject.ivr.metric.MetricNames.INCOMPLETE_CALLS_COUNTER;
+
 /**
  * Generates & sends an HTTP request to an IVR provider to trigger an outbound call
  */
@@ -78,7 +82,7 @@ public class OutboundCallServiceImpl implements OutboundCallService {
     private StatusMessageService statusMessageService;
     private static final String FILE_PROTOCOL = "file";
     private static final String HTTP_PROTOCOL = "http";
-    private IvrMetricsService ivrMetricsService;
+    private MetricRegistryService metricRegistryService;
     private static final String MODULE_NAME = "ivr";
     public static final List<Integer> ACCEPTABLE_IVR_RESPONSE_STATUSES = Arrays.asList(HttpStatus.SC_OK,
             HttpStatus.SC_ACCEPTED, HttpStatus.SC_CREATED);
@@ -88,12 +92,12 @@ public class OutboundCallServiceImpl implements OutboundCallService {
                                    StatusMessageService statusMessageService,
                                    CallDetailRecordDataService callDetailRecordDataService,
                                    EventRelay eventRelay,
-                                   IvrMetricsService ivrMetricsService) {
+                                   MetricRegistryService metricRegistryService) {
         this.configService = configService;
         this.statusMessageService = statusMessageService;
         this.callDetailRecordDataService = callDetailRecordDataService;
         this.eventRelay = eventRelay;
-        this.ivrMetricsService = ivrMetricsService;
+        this.metricRegistryService = metricRegistryService;
     }
 
     private void addCallDetailRecord(String callStatus, Config config, Map<String, String> params,
@@ -106,7 +110,7 @@ public class OutboundCallServiceImpl implements OutboundCallService {
 
         callDetailRecord.setFieldsFromParamsAndConfig(params, config);
 
-        ivrMetricsService.countCallStatus(callDetailRecord.getCallStatus(), config.getTerminalCallStatuses());
+        countCallStatus(metricRegistryService, callDetailRecord.getCallStatus(), config.getTerminalCallStatuses());
 
         callDetailRecordDataService.create(callDetailRecord);
     }
@@ -115,7 +119,8 @@ public class OutboundCallServiceImpl implements OutboundCallService {
     public void initiateCall(String configName, Map<String, String> parameters) {
         LOGGER.debug("initiateCall(configName = {}, params = {})", configName, parameters);
 
-        ivrMetricsService.markInitiatedCallMeter();
+        metricRegistryService.meter(INITIATED_CALLS_METER).mark();
+        metricRegistryService.counter(INCOMPLETE_CALLS_COUNTER).inc();
 
         Map<String, String> params = new HashMap<>(parameters);
 
@@ -365,5 +370,4 @@ public class OutboundCallServiceImpl implements OutboundCallService {
         }
         return data;
     }
-
 }

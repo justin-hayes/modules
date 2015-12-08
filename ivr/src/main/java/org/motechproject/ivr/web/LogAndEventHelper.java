@@ -7,13 +7,15 @@ import org.motechproject.ivr.domain.CallDetailRecord;
 import org.motechproject.ivr.domain.Config;
 import org.motechproject.ivr.event.EventParams;
 import org.motechproject.ivr.exception.ConfigNotFoundException;
-import org.motechproject.ivr.metric.service.IvrMetricsService;
 import org.motechproject.ivr.repository.CallDetailRecordDataService;
 import org.motechproject.ivr.service.ConfigService;
+import org.motechproject.metrics.service.MetricRegistryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
+
+import static org.motechproject.ivr.metric.MetricHelper.countCallStatus;
 
 /**
  * Helper class used to log CDR and send Motech events shared by the status & template controllers
@@ -38,7 +40,7 @@ public final class LogAndEventHelper {
      */
     public static void sendAndLogEvent(String eventSubject, ConfigService configService, //NO CHECKSTYLE ArgumentCount
                                        CallDetailRecordDataService cdrService, StatusMessageService messageService,
-                                       IvrMetricsService ivrMetricsService, EventRelay eventRelay, String configName,
+                                       MetricRegistryService metricRegistryService, EventRelay eventRelay, String configName,
                                        String templateName, Map<String, String> params) {
         if (!configService.hasConfig(configName)) {
             String msg = String.format("Invalid config: '%s'", configName);
@@ -59,7 +61,7 @@ public final class LogAndEventHelper {
 
         callDetailRecord.setFieldsFromParamsAndConfig(params, config);
 
-        ivrMetricsService.countCallStatus(callDetailRecord.getCallStatus(), config.getTerminalCallStatuses());
+        countCallStatus(metricRegistryService, callDetailRecord.getCallStatus(), config.getTerminalCallStatuses());
 
         // Generate a MOTECH event
         Map<String, Object> eventParams = EventParams.eventParamsFromCallDetailRecord(callDetailRecord);

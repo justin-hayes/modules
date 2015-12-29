@@ -104,7 +104,7 @@ public class FullFormController extends CommcareController {
 
     private void updateFullFormPushDelay(String commcareTimeStamp) {
         Instant commcareReceivedOn = Instant.parse(commcareTimeStamp);
-        long difference = ChronoUnit.SECONDS.between(commcareReceivedOn, Instant.now());
-        metricRegistryService.histogram(FULL_FORM_PUSH_DELAY).update(difference);
+        long delay = ChronoUnit.MILLIS.between(commcareReceivedOn, Instant.now());
+        metricRegistryService.histogram(FULL_FORM_PUSH_DELAY).update(delay);
     }
 }

@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-import static org.motechproject.ivr.metric.MetricHelper.countCallStatus;
+import static org.motechproject.ivr.metrics.MetricHelper.countCallStatus;
 
 /**
  * Helper class used to log CDR and send Motech events shared by the status & template controllers

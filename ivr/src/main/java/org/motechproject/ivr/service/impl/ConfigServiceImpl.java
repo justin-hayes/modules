@@ -10,7 +10,7 @@ import org.motechproject.event.MotechEvent;
 import org.motechproject.event.listener.annotations.MotechListener;
 import org.motechproject.ivr.domain.Config;
 import org.motechproject.ivr.exception.ConfigNotFoundException;
-import org.motechproject.ivr.metric.IvrHealthCheck;
+import org.motechproject.ivr.metrics.IvrHealthCheck;
 import org.motechproject.ivr.service.ConfigService;
 import org.motechproject.metrics.service.HealthCheckRegistryService;
 import org.motechproject.server.config.SettingsFacade;

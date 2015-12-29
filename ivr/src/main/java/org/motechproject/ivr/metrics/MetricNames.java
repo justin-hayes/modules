@@ -1,4 +1,4 @@
-package org.motechproject.ivr.metric;
+package org.motechproject.ivr.metrics;
 
 public final class MetricNames {
     public static final String INITIATED_CALLS_METER = "ivr.initiated_calls";

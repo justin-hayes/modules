@@ -111,7 +111,7 @@ public class StubFormController extends CommcareController {
 
     private void updateFormStubPushDelay(String commcareTimeStamp) {
         Instant commcareReceivedOn = Instant.parse(commcareTimeStamp);
-        long delay = ChronoUnit.SECONDS.between(commcareReceivedOn, Instant.now());
+        long delay = ChronoUnit.MILLIS.between(commcareReceivedOn, Instant.now());
         metricRegistryService.histogram(FORM_STUB_PUSH_DELAY).update(delay);
     }
 }

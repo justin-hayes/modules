@@ -65,9 +65,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.motechproject.ivr.metric.MetricHelper.countCallStatus;
-import static org.motechproject.ivr.metric.MetricNames.INITIATED_CALLS_METER;
-import static org.motechproject.ivr.metric.MetricNames.INCOMPLETE_CALLS_COUNTER;
+import static org.motechproject.ivr.metrics.MetricHelper.countCallStatus;
+import static org.motechproject.ivr.metrics.MetricNames.INITIATED_CALLS_METER;
+import static org.motechproject.ivr.metrics.MetricNames.INCOMPLETE_CALLS_COUNTER;
 
 /**
  * Generates & sends an HTTP request to an IVR provider to trigger an outbound call

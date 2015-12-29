@@ -1,4 +1,4 @@
-package org.motechproject.ivr.metric;
+package org.motechproject.ivr.metrics;
 
 import org.motechproject.metrics.api.Counter;
 import org.motechproject.metrics.api.Meter;
@@ -7,10 +7,10 @@ import org.motechproject.metrics.service.MetricRegistryService;
 import java.util.List;
 import java.util.function.Supplier;
 
-import static org.motechproject.ivr.metric.MetricNames.CALL_STATUS_COUNTER_TEMPLATE;
-import static org.motechproject.ivr.metric.MetricNames.CALL_STATUS_RATIO_TEMPLATE;
-import static org.motechproject.ivr.metric.MetricNames.INCOMPLETE_CALLS_COUNTER;
-import static org.motechproject.ivr.metric.MetricNames.INITIATED_CALLS_METER;
+import static org.motechproject.ivr.metrics.MetricNames.CALL_STATUS_COUNTER_TEMPLATE;
+import static org.motechproject.ivr.metrics.MetricNames.CALL_STATUS_RATIO_TEMPLATE;
+import static org.motechproject.ivr.metrics.MetricNames.INCOMPLETE_CALLS_COUNTER;
+import static org.motechproject.ivr.metrics.MetricNames.INITIATED_CALLS_METER;
 
 public final class MetricHelper {
     public static void countCallStatus(MetricRegistryService metricRegistryService, String callStatus, List<String> terminalCallStatuses) {

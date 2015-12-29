@@ -1,16 +1,17 @@
-package org.motechproject.ivr.metric;
+package org.motechproject.ivr.metrics;
 
-import com.codahale.metrics.health.HealthCheck;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.motechproject.metrics.api.HealthCheck;
+import org.motechproject.metrics.builder.ResultBuilder;
 
 import java.io.IOException;
 
-public class IvrHealthCheck extends HealthCheck {
+public class IvrHealthCheck implements HealthCheck {
     private String uri;
     private boolean isAuthRequired;
     private String username;
@@ -24,7 +25,7 @@ public class IvrHealthCheck extends HealthCheck {
     }
 
     @Override
-    protected Result check() throws IOException {
+    public Result check() throws IOException {
         HttpUriRequest request = new HttpGet(uri);
 
         if (isAuthRequired) {
@@ -38,9 +39,9 @@ public class IvrHealthCheck extends HealthCheck {
         HttpResponse response = new DefaultHttpClient().execute(request);
 
         if (response.getStatusLine().getStatusCode() == 200) {
-            return Result.healthy();
+            return ResultBuilder.healthy();
         }
 
-        return Result.unhealthy("Could not ping IVR provider");
+        return ResultBuilder.unhealthy("Could not ping IVR provider");
     }
 }

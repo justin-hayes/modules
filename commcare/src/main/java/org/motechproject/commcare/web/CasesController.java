@@ -138,7 +138,7 @@ public class CasesController extends CommcareController {
 
     private void updateCasePushDelay(String commcareTimeStamp) {
         Instant commcareReceivedOn = Instant.parse(commcareTimeStamp);
-        long delay = ChronoUnit.SECONDS.between(commcareReceivedOn, Instant.now());
+        long delay = ChronoUnit.MILLIS.between(commcareReceivedOn, Instant.now());
         metricRegistryService.histogram(CASE_PUSH_DELAY).update(delay);
     }
 }

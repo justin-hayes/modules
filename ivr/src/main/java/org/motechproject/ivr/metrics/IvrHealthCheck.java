@@ -7,7 +7,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.motechproject.metrics.api.HealthCheck;
-import org.motechproject.metrics.builder.ResultBuilder;
+import org.motechproject.metrics.builder.HealthCheckResultBuilder;
 
 import java.io.IOException;
 
@@ -39,9 +39,9 @@ public class IvrHealthCheck implements HealthCheck {
         HttpResponse response = new DefaultHttpClient().execute(request);
 
         if (response.getStatusLine().getStatusCode() == 200) {
-            return ResultBuilder.healthy();
+            return HealthCheckResultBuilder.healthy();
         }
 
-        return ResultBuilder.unhealthy("Could not ping IVR provider");
+        return HealthCheckResultBuilder.unhealthy("Could not ping IVR provider");
     }
 }
